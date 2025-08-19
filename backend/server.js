@@ -1,5 +1,4 @@
 import express from "express";
-import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
@@ -8,7 +7,11 @@ const __dirname = path.dirname(__filename);
 import { connectDB } from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
 
-dotenv.config();
+// Only use dotenv in development
+if (process.env.NODE_ENV !== "production") {
+  const dotenv = await import("dotenv");
+  dotenv.config();
+}
 
 const app = express();
 
