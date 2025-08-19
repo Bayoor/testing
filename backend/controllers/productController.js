@@ -63,6 +63,11 @@ export const createAProduct = async (req, res) => {
 
 export const getAllProducts = async (req, res) => {
   try {
+    console.log("🔍 getAllProducts called");
+    console.log("🔍 MongoDB connection state:", Product.db.readyState);
+    console.log("🔍 MONGO_URI exists:", !!process.env.MONGO_URI);
+    console.log("🔍 MONGO_URI preview:", process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 20) + "..." : "undefined");
+    
     const products = await Product.find({}).sort({ createdAt: -1 }); // Sort by createdAt in descending order
     if (!products || products.length === 0) {
         return res.status(404).json({
@@ -74,7 +79,8 @@ export const getAllProducts = async (req, res) => {
     console.log("Products fetched successfully:", products);
     res.status(200).json({ success: true, data: products });
   } catch (error) {
-    console.error("Error fetching products:", error.message);
+    console.error("❌ Error fetching products:", error.message);
+    console.error("❌ Full error:", error);
     res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 }
