@@ -31,7 +31,16 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.listen(PORT, async () => {
-  await connectDB();
-  console.log("✅ Connected to database");
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
+  console.log(`🚀 Server is running on port ${PORT}`);
+  console.log("Environment variables check:");
+  console.log("NODE_ENV:", process.env.NODE_ENV);
+  console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
+  
+  try {
+    await connectDB();
+    console.log("✅ Connected to database successfully");
+  } catch (error) {
+    console.error("❌ Failed to connect to database:", error.message);
+    // Don't exit in production, let the server run for debugging
+  }
 });
