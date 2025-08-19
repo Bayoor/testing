@@ -2,8 +2,8 @@
   "name": "mern-crash-course",
   "version": "1.0.0",
   "scripts": {
-    "build": "cd frontend && npm ci && npm run build",
-    "vercel-build": "cd frontend && npm ci && npm run build",
+    "build": "cd frontend && npm ci --include=dev && npm run build",
+    "vercel-build": "cd frontend && npm ci --include=dev && npm run build",
     "start": "cd backend && npm ci && npm start"
   },
   "engines": {
