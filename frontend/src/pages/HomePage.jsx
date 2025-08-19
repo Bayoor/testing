@@ -1,15 +1,32 @@
 import { Container, VStack, Text, SimpleGrid } from "@chakra-ui/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useProductStore } from "../store/product"; // Import the product store
 import ProductCard from "../components/ProductCard"; // Import the ProductCard component
 const HomePage = () => {
   // Fetch products from the store
   const { fetchProducts, products } = useProductStore();
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
   useEffect(() => {
-    fetchProducts();
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        await fetchProducts();
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
   }, [fetchProducts]); // Fetch products when component mounts
-  //console.log("products", products);
+  console.log("products", products);
+  console.log("error", error);
+  console.log("loading", loading);
 
   return (
     <Container maxW="container.xl" py={12}>
@@ -24,13 +41,27 @@ const HomePage = () => {
           Current Products 🚀
         </Text>
 
-        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={10} w={"full"}>
-          {products.map((product) => (
-            <ProductCard key={product._id} product={product} />
-          ))}
-        </SimpleGrid>
+        {loading && (
+          <Text fontSize="xl" textAlign={"center"} color="blue.500">
+            Loading products...
+          </Text>
+        )}
 
-        {products.length === 0 && (
+        {error && (
+          <Text fontSize="xl" textAlign={"center"} color="red.500">
+            Error: {error}
+          </Text>
+        )}
+
+        {!loading && !error && (
+          <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={10} w={"full"}>
+            {products.map((product) => (
+              <ProductCard key={product._id} product={product} />
+            ))}
+          </SimpleGrid>
+        )}
+
+        {!loading && !error && products.length === 0 && (
           <Text
             fontSize="xl"
             textAlign={"center"}
