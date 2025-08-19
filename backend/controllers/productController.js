@@ -1,5 +1,6 @@
 import Product from "../models/productModel.js";
 import mongoose from "mongoose";
+import { connectDB } from "../config/db.js";
 
 export const createAProduct = async (req, res) => {
   const { name, price, imageUrl } = req.body;
@@ -24,6 +25,10 @@ export const createAProduct = async (req, res) => {
   }
 
   try {
+    // Ensure database connection
+    if (mongoose.connection.readyState !== 1) {
+      await connectDB();
+    }
     //  Check first to give a nicer error
     const existing = await Product.findOne({ name });
     if (existing) {
@@ -64,9 +69,14 @@ export const createAProduct = async (req, res) => {
 export const getAllProducts = async (req, res) => {
   try {
     console.log("🔍 getAllProducts called");
-    console.log("🔍 MongoDB connection state:", Product.db.readyState);
-    console.log("🔍 MONGO_URI exists:", !!process.env.MONGO_URI);
-    console.log("🔍 MONGO_URI preview:", process.env.MONGO_URI ? process.env.MONGO_URI.substring(0, 20) + "..." : "undefined");
+    console.log("🔍 Initial MongoDB connection state:", mongoose.connection.readyState);
+    
+    // Ensure database connection
+    if (mongoose.connection.readyState !== 1) {
+      console.log("🔄 Connecting to database...");
+      await connectDB();
+      console.log("✅ Database connected, state:", mongoose.connection.readyState);
+    }
     
     const products = await Product.find({}).sort({ createdAt: -1 }); // Sort by createdAt in descending order
     if (!products || products.length === 0) {
@@ -96,20 +106,24 @@ export const updateAProduct = async (req, res) => {
       .json({ success: false, message: "Invalid product ID" });
   }
 
-  // 2. Optional: check for duplicate name if the client is trying to update `name`
-  if (updates.name) {
-    const existing = await Product.findOne({ name: updates.name });
-    if (existing && existing._id.toString() !== productId) {
-      return res
-        .status(409)
-        .json({
-          success: false,
-          message: `Another product with name "${updates.name}" already exists.`
-        });
-    }
-  }
-
   try {
+    // Ensure database connection
+    if (mongoose.connection.readyState !== 1) {
+      await connectDB();
+    }
+
+    // 2. Optional: check for duplicate name if the client is trying to update `name`
+    if (updates.name) {
+      const existing = await Product.findOne({ name: updates.name });
+      if (existing && existing._id.toString() !== productId) {
+        return res
+          .status(409)
+          .json({
+            success: false,
+            message: `Another product with name "${updates.name}" already exists.`
+          });
+      }
+    }
     // 3. Perform the update
     const updatedProduct = await Product.findByIdAndUpdate(
       productId,
@@ -154,6 +168,11 @@ export const updateAProduct = async (req, res) => {
 export const deleteAProduct = async (req, res) => {
   const { productId } = req.params; // Extract productId from request parameters
   try {
+    // Ensure database connection
+    if (mongoose.connection.readyState !== 1) {
+      await connectDB();
+    }
+    
     const deletedProduct = await Product.findByIdAndDelete(productId);
     if (!deletedProduct) {
       return res
